@@ -50,13 +50,13 @@ selectWith        :: Ord a => Int -> Int -> [a] -> Maybe a
 selectWith n i xs = case map medianOfFive <$> partitionIntoFives xs of
                       (rest, [])      -> selectSmall i $ List.sort rest
                       (_,    medians) -> case selectWith (n `div` 5) (n `div` 10) medians of
-                        Nothing -> error "absurd: cannot happen"
-                            -- note: this is safe, since n `div` 10 < n `div` 5 (since n >= 5)
-                        Just m  -> let
+                        Nothing -> error "selectWidth: absurd: cannot happen"
+                        -- note: this is safe, since n `div` 10 < n `div` 5 (since n >= 5)
+                        Just m  -> let -- m is the median of medians
                           (smallers,eqs,largers) = partitionWith m xs
-                          nSmallers = length smallers
-                          nEqs      = length eqs
-                          nLargers  = n - nSmallers - nEqs
+                          nSmallers              = length smallers
+                          nEqs                   = length eqs
+                          nLargers               = n - nSmallers - nEqs
                           -- smallers and largers each contain at least a constant fraction
                           -- of the input (of size (3/10)n).
                           i'        = i- nSmallers - nEqs
