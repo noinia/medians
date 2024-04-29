@@ -21,7 +21,7 @@ common common
 
 library
     import:           common
-    exposed-modules:  MyLib
+    exposed-modules:  MediansOfMedians
     -- other-modules:
     -- other-extensions:
     hs-source-dirs:   src
