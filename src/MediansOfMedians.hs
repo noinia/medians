@@ -22,7 +22,7 @@ median xs = case xs of
                     in case n `quotRem` 2 of
                          (h,1) -> UniqueMedian <$> selectWith n (h+1) xs
                          (h,_) -> selectWith n h xs <&> \m ->
-                                    let m' = List.minimum $ tail [y | y <- xs, y >= m ]
+                                    let m' = List.minimum $ drop 1 [y | y <- xs, y >= m ]
                                         -- this is safe since: y=m will at least satisfy y
                                         -- >= m moreover, since we computed the lower
                                         -- median, there must also be at least be another element
@@ -39,20 +39,28 @@ median xs = case xs of
 select      :: Ord a => Int -> [a] -> Maybe a
 select i xs = selectWith (length xs) i xs
 
+-- | Returns the i^th smallest element from the list. (The smallest element being the
+-- 0^th). The first argument should be the size of the input list.
+--
+-- i.e.
+-- prop> select i xs == Just (sort xs !! i)
+--
+-- \(O(n)\)
 selectWith        :: Ord a => Int -> Int -> [a] -> Maybe a
 selectWith n i xs = case map medianOfFive <$> partitionIntoFives xs of
                       (rest, [])      -> selectSmall i $ List.sort rest
-                      (rest, medians) ->
-                        let Just m    = selectWith (n `div` 5) (n `div` 10) medians
+                      (_,    medians) -> case selectWith (n `div` 5) (n `div` 10) medians of
+                        Nothing -> error "absurd: cannot happen"
                             -- note: this is safe, since n `div` 10 < n `div` 5 (since n >= 5)
-                            (smallers,eqs,largers) = partitionWith m xs
-                            nSmallers = length smallers
-                            nEqs      = length eqs
-                            nLargers  = n - nSmallers - nEqs
-                            -- smallers and largers each contain at least a constant fraction
-                            -- of the input (of size (3/10)n).
-                            i'        = i- nSmallers - nEqs
-                        in case i  `compare` nSmallers of
+                        Just m  -> let
+                          (smallers,eqs,largers) = partitionWith m xs
+                          nSmallers = length smallers
+                          nEqs      = length eqs
+                          nLargers  = n - nSmallers - nEqs
+                          -- smallers and largers each contain at least a constant fraction
+                          -- of the input (of size (3/10)n).
+                          i'        = i- nSmallers - nEqs
+                          in case i  `compare` nSmallers of
                              LT                         -> selectWith nSmallers i smallers
                              EQ                         -> Just m
                              GT | i <  nSmallers + nEqs -> Just m
