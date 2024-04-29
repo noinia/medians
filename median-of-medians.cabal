@@ -1,0 +1,39 @@
+cabal-version:      3.4
+name:               median-of-medians
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            MIT
+license-file:       LICENSE
+author:             Frank Staals
+maintainer:         frank@fstaals.net
+-- copyright:
+category:           Math
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common common
+  ghc-options: -Wall -O2
+  default-language: GHC2021
+  build-depends:    base ^>=4.19.1.0
+  default-extensions: LambdaCase
+
+library
+    import:           common
+    exposed-modules:  MyLib
+    -- other-modules:
+    -- other-extensions:
+    hs-source-dirs:   src
+
+test-suite median-of-medians-test
+    import:           common
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        hspec,
+        QuickCheck,
+        median-of-medians
