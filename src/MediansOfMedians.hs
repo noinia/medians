@@ -10,8 +10,9 @@ import qualified Data.List as List
 import           Debug.Trace
 --------------------------------------------------------------------------------
 
-data Median a = UniqueMedian !a
-              | DoubleMedian !a !a
+-- | Data type to represent the median
+data Median a = UniqueMedian a
+              | DoubleMedian a a
               deriving (Show,Read,Eq)
 
 -- | Returns the median element
