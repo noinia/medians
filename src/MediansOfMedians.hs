@@ -1,5 +1,6 @@
 module MediansOfMedians
-  ( median
+  ( Median(..)
+  , median
   , select
   , selectWith
   ) where
@@ -18,17 +19,25 @@ data Median a = UniqueMedian a
 -- | Returns the median element
 median    :: Ord a => [a] -> Maybe (Median a)
 median xs = case xs of
-              [] -> Nothing
-              _  -> let n = length xs
-                    in case n `quotRem` 2 of
-                         (h,1) -> UniqueMedian <$> selectWith n (h+1) xs
-                         (h,_) -> selectWith n h xs <&> \m ->
-                                    let m' = List.minimum $ drop 1 [y | y <- xs, y >= m ]
-                                        -- this is safe since: y=m will at least satisfy y
-                                        -- >= m moreover, since we computed the lower
-                                        -- median, there must also be at least be another element
-                                        -- that is ast least m.
-                                    in DoubleMedian m m'
+              []            -> Nothing
+              [m]           -> Just $ UniqueMedian m
+              [m,m']
+                | m < m'    -> Just $ DoubleMedian m  m'
+                | otherwise -> Just $ DoubleMedian m' m
+              _             -> let n = length xs in
+                               case (n-1) `quotRem` 2 of
+                                 (h,0) -> selectWith n h xs <&> \m -> UniqueMedian m
+                                 (h,_) -> selectWith n h xs <&> \m ->
+                                          let (smallers,eqs,largers) = partitionWith m xs
+                                              nSmallers = length smallers
+                                              nEqs      = length eqs
+                                              m'        = if h+1 < nSmallers + nEqs
+                                                then m -- the successor of m is another copy of m
+                                                else List.minimum largers
+                                                     -- In this case largers is guaranteed to be
+                                                     -- non-empty, since we computed the lower
+                                                     -- median
+                                          in DoubleMedian m m'
 
 -- | returns the i^th smallest element from the list. (The smallest element being the
 -- 0^th).
@@ -67,6 +76,8 @@ selectWith n i xs = case map medianOfFive <$> partitionIntoFives xs of
                              GT | i <  nSmallers + nEqs -> Just m
                                 | otherwise             -> selectWith nLargers i' largers
 
+
+-- | Partition a list in comparison to some pivot. Returns (smallers,equals,largers)
 partitionWith   :: Ord a => a -> [a] -> ([a],[a],[a])
 partitionWith m = foldr (\x (smallers,eqs,largers) -> case x `compare` m of
                                                         LT -> (x:smallers,eqs,largers)
